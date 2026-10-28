@@ -1,28 +1,21 @@
-using estudiantes_icinf.Data;
-using estudiantes_icinf.Endpoints;
-using estudiantes_icinf.Models;
-using estudiantes_icinf.Repositories;
-using estudiantes_icinf.Validators;
-using FluentValidation;
 using Microsoft.EntityFrameworkCore;
+using estudiantes_icinf.Repositories;
 
 var builder = WebApplication.CreateBuilder(args);
+
+// Configurar la conexión a PostgreSQL con EF Core
+builder.Services.AddDbContext<AppDbContext>(options =>
+    options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
+
+// CAMBIAR ESTO: Inyectar el repositorio de PostgreSQL en vez del JsonStudentRepository
+builder.Services.AddScoped<IStudentRepository, PostgresStudentRepository>();
 
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
-builder.Services.AddDbContext<AppDbContext>(options =>
-    options.UseNpgsql(builder.Configuration.GetConnectionString("Default")));
-builder.Services.AddScoped<IStudentRepository, EfStudentRepository>();
-builder.Services.AddScoped<IValidator<CreateStudentDto>, CreateStudentValidator>();
-
 var app = builder.Build();
 
-app.UseSwagger();
-app.UseSwaggerUI(c => c.RoutePrefix = "docs");
-
-app.UseHttpsRedirection();
-
+// Configurar endpoints existentes
 app.MapStudentEndpoints();
 
 app.Run();
